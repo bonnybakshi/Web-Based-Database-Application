@@ -1,0 +1,611 @@
+60-SQL> 
+60-SQL> 
+60-SQL> -- ******************************************************
+60-SQL> --    DROP TABLES
+60-SQL> -- ******************************************************
+60-SQL>     DROP TABLE tbServiceRendered purge;
+
+Table dropped.
+
+60-SQL>     DROP TABLE tbInvoice purge;
+
+Table dropped.
+
+60-SQL>     DROP TABLE tbAppointment purge;
+
+Table dropped.
+
+60-SQL>     DROP TABLE tbService purge;
+
+Table dropped.
+
+60-SQL>     DROP TABLE tbClient purge;
+
+Table dropped.
+
+60-SQL>     DROP TABLE tblogin purge;
+
+Table dropped.
+
+60-SQL> 
+60-SQL> -- ******************************************************
+60-SQL> --    DROP SEQUENCES
+60-SQL> -- ******************************************************
+60-SQL> 
+60-SQL>     DROP sequence seq_serviceId ;
+
+Sequence dropped.
+
+60-SQL>     DROP sequence seq_rendered;
+
+Sequence dropped.
+
+60-SQL>     DROP sequence seq_client;
+
+Sequence dropped.
+
+60-SQL>     Drop sequence seq_appointment;
+
+Sequence dropped.
+
+60-SQL>     Drop sequence seq_invoice;
+
+Sequence dropped.
+
+60-SQL> 
+60-SQL> -- ******************************************************
+60-SQL> --    CREATE TABLES
+60-SQL> -- ******************************************************
+60-SQL> CREATE TABLE tblogin (
+  2  	 uname	     varchar2(20)	 not null,
+  3  	 pwd	     varchar2(20)	 not null,
+  4  	 fname	     varchar2(20)	 null,
+  5  	 userview    varchar2(20)	 null
+  6  );
+
+Table created.
+
+60-SQL> 
+60-SQL> CREATE table tbClient (
+  2  	 clientId	 char(4)	    not null
+  3  	 CONSTRAINT pk_clientId PRIMARY KEY
+  4  	 CONSTRAINT rg_clientId CHECK (clientId between 1 and 9999),
+  5  	 name		 varchar2(50)		 not null,
+  6  	 phone		 varchar2(15)		 not null,
+  7  	 email		 varchar2(50)		 null
+  8  );
+
+Table created.
+
+60-SQL> 
+60-SQL> CREATE table tbService (
+  2  	 serviceId	     char(2)	      not null
+  3  	 CONSTRAINT pk_serviceId PRIMARY KEY
+  4  	 CONSTRAINT serviceId_range CHECK (serviceId between 1 and 99),
+  5  	 serviceType	     varchar2(20)	 not null,
+  6  	 serviceDescr	     varchar2(20)	 not null,
+  7  	 serviceDuration     number(5,0)	 null,
+  8  	 servicePrice	     number(10,2)	 default 0.00	 not null
+  9  	 constraint rg_price check (servicePrice >= 0)
+ 10  );
+
+Table created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> CREATE table tbAppointment (
+  2  	 appointmentNo	     char(4)	    not null
+  3  	 CONSTRAINT pk_appointmentNo PRIMARY KEY
+  4  	 CONSTRAINT rg_apptNo CHECK (appointmentNo between 1 and 9999),
+  5  	 visitDate	 date	      default CURRENT_DATE     not null,
+  6  	 visitTime	 varchar2(5)	     not null,
+  7  	 status 	char(8) 	     not null,
+  8  	 clientId	 char(4)	not null
+  9  	 CONSTRAINT fk_clientId_tbAppointment
+ 10  	 REFERENCES tbClient(clientId) on delete cascade
+ 11  );
+
+Table created.
+
+60-SQL> 
+60-SQL> CREATE table tbInvoice (
+  2  	 invoiceNo	  char(3)		not null
+  3  	 CONSTRAINT pk_invoiceNo PRIMARY KEY,
+  4  	 paymentDate	   date 		not null,
+  5  	 paymentAmt	 number(11,2)		default 0.00	 not null,
+  6  	 paymentMethod	   char(4)	       not null,
+  7  	 clientId	 char(4)	    not null
+  8  	 CONSTRAINT fk_clientId_tbInvoice
+  9  	 REFERENCES tbClient(clientId) on delete cascade,
+ 10  	 CONSTRAINT rg_paymentAmt CHECK (paymentAmt >= 0)
+ 11  );
+
+Table created.
+
+60-SQL> 
+60-SQL> CREATE table tbServiceRendered (
+  2  	 renderedNo	     number(11,2)		not null
+  3  	 CONSTRAINT pk_renderedNo PRIMARY KEY,
+  4  	 serviceId	 char(2)	   not null
+  5  	 CONSTRAINT fk_serviceId_tbServiceRendered
+  6  	 REFERENCES tbService(serviceId),
+  7  	 appointmentNo	     char(4)	    not null
+  8  	 CONSTRAINT fk_apptNo_tbServiceRendered
+  9  	 REFERENCES tbAppointment(appointmentNo),
+ 10  	 servicePrice	     number(11,2)	 default 0.00	 not null,
+ 11  	 invoiceNo	  char(3)		null
+ 12  	 CONSTRAINT fk_invoiceNo_tbServiceRendered
+ 13  	 REFERENCES tbInvoice(invoiceNo) on delete cascade
+ 14  );
+
+Table created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> -- ******************************************************
+60-SQL> --    CREATE SEQUENCES
+60-SQL> -- ******************************************************
+60-SQL> 
+60-SQL> CREATE sequence seq_serviceId
+  2  	 increment by 1
+  3  	 start with 1;
+
+Sequence created.
+
+60-SQL> 
+60-SQL> CREATE sequence seq_rendered
+  2  	 increment by 1
+  3  	 start with 1;
+
+Sequence created.
+
+60-SQL> 
+60-SQL> CREATE sequence seq_client
+  2  	 increment by 1
+  3  	 start with 1;
+
+Sequence created.
+
+60-SQL> 
+60-SQL> CREATE sequence seq_appointment
+  2  	 increment by 1
+  3  	 start with 1;
+
+Sequence created.
+
+60-SQL> 
+60-SQL> CREATE sequence seq_invoice
+  2  	 increment by 1
+  3  	 start with 1;
+
+Sequence created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> -- ******************************************************
+60-SQL> --    POPULATE TABLES
+60-SQL> -- ******************************************************
+60-SQL> /* tbLogin */
+60-SQL> insert into tblogin values ('admin', '60admin', 'Lisa', 'all');
+
+1 row created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> 
+60-SQL> /* tbClient */
+60-SQL> Insert into tbClient values (seq_client.nextval, 'Jessica Smith','714-222-3333','jessica.s@gmail.com');
+
+1 row created.
+
+60-SQL> Insert into tbClient values (seq_client.nextval, 'Abbie Vincent','543-333-2222','abbie.v@gmail.com');
+
+1 row created.
+
+60-SQL> Insert into tbClient values (seq_client.nextval, 'Dana Jones','777-4444-5555','dana.j@gmail.com');
+
+1 row created.
+
+60-SQL> Insert into tbClient values (seq_client.nextval, 'Tina Miller','333-888-9999','tina.m@gmail.com');
+
+1 row created.
+
+60-SQL> Insert into tbClient values (seq_client.nextval, 'Pamela Davis','233-243-3434','p.davis@gmail.com');
+
+1 row created.
+
+60-SQL> Insert into tbClient values (seq_client.nextval, 'Nancy Taylor','718-324-5434','nancy.t@gmail.com');
+
+1 row created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> /* tbService */
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'facials', 'custom blend', 60, 95.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'facials', 'acne clearing', 60, 95.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'facials', 'calming', 60, 95.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'facials', 'revitalizing', 60, 100.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing face', 'brow', null, 20.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing face', 'lip',null, 12.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing face', 'chin',null, 12.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing face', 'side of face',null, 12.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing body', 'under arm',null, 25.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing body', 'full arm', 30, 20.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing body', 'back', 30, 42.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing body', 'chest', 20, 50.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing body', 'sholders', 15, 20.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing body', 'neck', 15, 20.00);
+
+1 row created.
+
+60-SQL> Insert into tbService values (seq_serviceId.nextval,'waxing body', 'full legs', 45, 60.00);
+
+1 row created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> /* tbAppointment*/
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('09-04-2015', 'mm-dd-yyyy'), '3:30', 'complete','1');
+
+1 row created.
+
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('09-04-2015', 'mm-dd-yyyy'), '4:30','complete','2');
+
+1 row created.
+
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('09-04-2015', 'mm-dd-yyyy'), '6:00','complete','3');
+
+1 row created.
+
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('09-05-2015', 'mm-dd-yyyy'), '2:00','pending','4');
+
+1 row created.
+
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('09-05-2015', 'mm-dd-yyyy'), '4:00','missed','5');
+
+1 row created.
+
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('09-05-2015', 'mm-dd-yyyy'), '5:00','complete','6');
+
+1 row created.
+
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('10-07-2015', 'mm-dd-yyyy'), '5:00','complete','6');
+
+1 row created.
+
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('11-10-2015', 'mm-dd-yyyy'), '5:00','complete','6');
+
+1 row created.
+
+60-SQL> Insert into tbAppointment values (seq_appointment.nextval,to_date('12-22-2015', 'mm-dd-yyyy'), '2:00','pending','6');
+
+1 row created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> 
+60-SQL> /* tbInvoice */
+60-SQL> Insert into tbInvoice values (seq_invoice.nextval,to_date('09-04-2015', 'mm-dd-yyyy'), 115, 'card', '1');
+
+1 row created.
+
+60-SQL> Insert into tbInvoice values (seq_invoice.nextval,to_date('09-04-2015', 'mm-dd-yyyy'), 95, 'cash', '2');
+
+1 row created.
+
+60-SQL> Insert into tbInvoice values (seq_invoice.nextval,to_date('09-04-2015', 'mm-dd-yyyy'), 50, 'cash', '3');
+
+1 row created.
+
+60-SQL> Insert into tbInvoice values (seq_invoice.nextval,to_date('09-05-2015', 'mm-dd-yyyy'), 92, 'cash', '4');
+
+1 row created.
+
+60-SQL> Insert into tbInvoice values (seq_invoice.nextval,to_date('09-05-2015', 'mm-dd-yyyy'), 95, 'card', '6');
+
+1 row created.
+
+60-SQL> Insert into tbInvoice values (seq_invoice.nextval,to_date('10-07-2015', 'mm-dd-yyyy'), 95, 'card', '6');
+
+1 row created.
+
+60-SQL> Insert into tbInvoice values (seq_invoice.nextval,to_date('11-10-2015', 'mm-dd-yyyy'), 95, 'card', '6');
+
+1 row created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> /* tbServiceRendered */
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'3', '1', 95, '1');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'5', '1', 20, '1');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'2', '2', 95, '2');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'11', '3', 50, '3');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'10', '4', 42, '4');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'11', '4', 50, '4');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'3', '5', 95, null);
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'2', '6', 95, '5');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'2', '7', 95, '6');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'2', '8', 95, '7');
+
+1 row created.
+
+60-SQL> Insert into tbServiceRendered values (seq_rendered.nextval,'2', '9', 95, null);
+
+1 row created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> 
+60-SQL> -- ******************************************************
+60-SQL> --    VIEW TABLES
+60-SQL> --
+60-SQL> -- Note:  Issue the appropiate commands to show your data
+60-SQL> -- ******************************************************
+60-SQL> 
+60-SQL> SELECT * FROM tblogin;
+
+UNAME                PWD                  FNAME                                 
+-------------------- -------------------- --------------------                  
+USERVIEW                                                                        
+--------------------                                                            
+admin                60admin              Lisa                                  
+all                                                                             
+                                                                                
+
+60-SQL> SELECT * FROM tbClient;
+
+CLIE NAME                                               PHONE                   
+---- -------------------------------------------------- ---------------         
+EMAIL                                                                           
+--------------------------------------------------                              
+1    Jessica Smith                                      714-222-3333            
+jessica.s@gmail.com                                                             
+                                                                                
+2    Abbie Vincent                                      543-333-2222            
+abbie.v@gmail.com                                                               
+                                                                                
+3    Dana Jones                                         777-4444-5555           
+dana.j@gmail.com                                                                
+                                                                                
+
+CLIE NAME                                               PHONE                   
+---- -------------------------------------------------- ---------------         
+EMAIL                                                                           
+--------------------------------------------------                              
+4    Tina Miller                                        333-888-9999            
+tina.m@gmail.com                                                                
+                                                                                
+5    Pamela Davis                                       233-243-3434            
+p.davis@gmail.com                                                               
+                                                                                
+6    Nancy Taylor                                       718-324-5434            
+nancy.t@gmail.com                                                               
+                                                                                
+
+6 rows selected.
+
+60-SQL> SELECT * FROM tbService;
+
+SE SERVICETYPE          SERVICEDESCR         SERVICEDURATION SERVICEPRICE       
+-- -------------------- -------------------- --------------- ------------       
+1  facials              custom blend                      60           95       
+2  facials              acne clearing                     60           95       
+3  facials              calming                           60           95       
+4  facials              revitalizing                      60          100       
+5  waxing face          brow                                           20       
+6  waxing face          lip                                            12       
+7  waxing face          chin                                           12       
+8  waxing face          side of face                                   12       
+9  waxing body          under arm                                      25       
+10 waxing body          full arm                          30           20       
+11 waxing body          back                              30           42       
+
+SE SERVICETYPE          SERVICEDESCR         SERVICEDURATION SERVICEPRICE       
+-- -------------------- -------------------- --------------- ------------       
+12 waxing body          chest                             20           50       
+13 waxing body          sholders                          15           20       
+14 waxing body          neck                              15           20       
+15 waxing body          full legs                         45           60       
+
+15 rows selected.
+
+60-SQL> SELECT * FROM tbAppointment;
+
+APPO VISITDATE VISIT STATUS   CLIE                                              
+---- --------- ----- -------- ----                                              
+1    04-SEP-15 3:30  complete 1                                                 
+2    04-SEP-15 4:30  complete 2                                                 
+3    04-SEP-15 6:00  complete 3                                                 
+4    05-SEP-15 2:00  pending  4                                                 
+5    05-SEP-15 4:00  missed   5                                                 
+6    05-SEP-15 5:00  complete 6                                                 
+7    07-OCT-15 5:00  complete 6                                                 
+8    10-NOV-15 5:00  complete 6                                                 
+9    22-DEC-15 2:00  pending  6                                                 
+
+9 rows selected.
+
+60-SQL> SELECT * FROM tbInvoice;
+
+INV PAYMENTDA PAYMENTAMT PAYM CLIE                                              
+--- --------- ---------- ---- ----                                              
+1   04-SEP-15        115 card 1                                                 
+2   04-SEP-15         95 cash 2                                                 
+3   04-SEP-15         50 cash 3                                                 
+4   05-SEP-15         92 cash 4                                                 
+5   05-SEP-15         95 card 6                                                 
+6   07-OCT-15         95 card 6                                                 
+7   10-NOV-15         95 card 6                                                 
+
+7 rows selected.
+
+60-SQL> SELECT * FROM tbServiceRendered;
+
+RENDEREDNO SE APPO SERVICEPRICE INV                                             
+---------- -- ---- ------------ ---                                             
+         1 3  1              95 1                                               
+         2 5  1              20 1                                               
+         3 2  2              95 2                                               
+         4 11 3              50 3                                               
+         5 10 4              42 4                                               
+         6 11 4              50 4                                               
+         7 3  5              95                                                 
+         8 2  6              95 5                                               
+         9 2  7              95 6                                               
+        10 2  8              95 7                                               
+        11 2  9              95                                                 
+
+11 rows selected.
+
+60-SQL> 
+60-SQL> -- ******************************************************
+60-SQL> --   Triggers
+60-SQL> -- ******************************************************
+60-SQL> -- Trigger is to increment appontmentNo by 1 every time data is inserted
+60-SQL>     CREATE or REPLACE trigger TR_new_appointment_IN
+  2  	    before insert on tbAppointment
+  3  	    for each row
+  4  	    /* trigger executes before an insert into the appointment table */
+  5  	    begin
+  6  	       SELECT seq_appointment.nextval
+  7  		    into :new.appointmentNo
+  8  		     FROM dual;
+  9  	    end TR_new_appointment_IN;
+ 10  	 /
+
+Trigger created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> -- Trigger is to increment clientId by 1 every time client is addded
+60-SQL>     CREATE or REPLACE trigger TR_new_client_IN
+  2  	    before insert on tbClient
+  3  	    for each row
+  4  	    /* trigger executes before an insert into the tbClient */
+  5  	    begin
+  6  	       SELECT seq_client.nextval
+  7  		    into :new.clientId
+  8  		     FROM dual;
+  9  	    end TR_new_client_IN;
+ 10  	 /
+
+Trigger created.
+
+60-SQL> 
+60-SQL> -- Trigger is to increment renderedNo by 1 every time data is inserted
+60-SQL>     CREATE or REPLACE trigger TR_new_rendered_IN
+  2  	    before insert on tbServiceRendered
+  3  	    for each row
+  4  	    /* trigger executes before an insert into the tbServiceRendered */
+  5  	    begin
+  6  	       SELECT seq_rendered.nextval
+  7  		    into :new.renderedNo
+  8  		     FROM dual;
+  9  	    end TR_new_rendered_IN;
+ 10  	 /
+
+Trigger created.
+
+60-SQL> 
+60-SQL> -- Trigger is to increment serviceId by 1 every time data is inserted
+60-SQL>     CREATE or REPLACE trigger TR_new_service_IN
+  2  	    before insert on tbService
+  3  	    for each row
+  4  	    /* trigger executes before an insert into the tbService */
+  5  	    begin
+  6  	       SELECT seq_serviceId.nextval
+  7  		    into :new.serviceId
+  8  		     FROM dual;
+  9  	    end TR_new_service_IN;
+ 10  	 /
+
+Trigger created.
+
+60-SQL> 
+60-SQL> -- Trigger is to increment invoiceNo by 1 every time data is inserted
+60-SQL>     CREATE or REPLACE trigger TR_new_invoice_IN
+  2  	    before insert on tbInvoice
+  3  	    for each row
+  4  	    /* trigger executes before an insert into the tbInvoice*/
+  5  	    begin
+  6  	       SELECT seq_invoice.nextval
+  7  		    into :new.invoiceNo
+  8  		     FROM dual;
+  9  	    end TR_new_invoice_IN;
+ 10  	 /
+
+Trigger created.
+
+60-SQL> 
+60-SQL> 
+60-SQL> -- ******************************************************
+60-SQL> --    END SESSION
+60-SQL> -- ******************************************************
+60-SQL> 
+60-SQL> spool off
